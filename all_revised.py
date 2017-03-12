@@ -1,10 +1,10 @@
 from myLib1729 import *
 from time import sleep
-import os
+import os,sys
 
 print "\n\nReading Input Files ...\n"
 sleep(1)
-attackType = ["Add User Attack","Hydra SSH Attack","Hydra FTP Attack","Java Meterpreter Attack","Meterpreter Attack","Webshell Attack"]
+attackType = ["Add User Attack","Hydra SSH Attack","Hydra FTP Attack","Java Meterpreter Attack","Meterpreter Attack","Webshell Attack", "Normal"]
 
 fAddUser = open("totTrainAdduser.txt","r")
 fHydraFTP = open("totTrainHydraFTP.txt","r")
@@ -12,8 +12,9 @@ fHydraSSH = open("totTrainHydraSSH.txt","r")
 fJavaMetr = open("totTrainJavaMetr.txt","r")
 fMetr = open("totTrainMeterpreter.txt","r")
 fWebShell = open("totTrainWebShell.txt","r")
+fNormal = open("totTrainDataNormal2.txt","r")
 
-print "What Weight do u want to use for ngrams division?\n"
+sys.stdout.write("What Weight do u want to use for ngrams division? ")
 n = int(raw_input())
 
 AddUserString = fAddUser.read()
@@ -22,6 +23,7 @@ HydraFTPString = fHydraFTP.read()
 JavaMetrString = fJavaMetr.read()
 MeterpreterString = fMetr.read()
 WebshellString = fWebShell.read()
+NormalString = fNormal.read()
 
 print "Creating individual file records..."
 sleep(1)
@@ -31,6 +33,7 @@ HydraFTPData = HydraFTPString.split("-1")[:-1]
 JavaMetrData = JavaMetrString.split("-1")[:-1]
 MeterpreterData = MeterpreterString.split("-1")[:-1]
 WebshellData = WebshellString.split("-1")[:-1]
+NormalData = NormalString.split("-1")[:-1]
 
 noOfAddUserFiles = len(AddUserData)
 noOfHydraSSHFiles = len(HydraSSHData)
@@ -38,6 +41,7 @@ noOfHydraFTPFiles = len(HydraFTPData)
 noOfJavaMetrFiles = len(JavaMetrData)
 noOfMeterpreterFiles = len(MeterpreterData)
 noOfWebShellFiles = len(WebshellData)
+noOfNormalFiles = len(NormalData)
 
 AddUserFilesDict = []
 HydraSSHFilesDict = []
@@ -45,6 +49,7 @@ HydraFTPFilesDict = []
 JavaMetrFilesDict = []
 MeterpreterFilesDict = []
 WebshellFilesDict = []
+NormaFilesDict = []
 
 AllAddUser = ""
 AllHydraSSH = ""
@@ -52,6 +57,7 @@ AllHydraFTP = ""
 AllJavaMetr = ""
 AllMeterpreter = ""
 AllWebShell = ""
+AllNormal = ""
 
 for i in AddUserData:
     AllAddUser += i
@@ -77,6 +83,9 @@ for i in WebshellData:
     AllWebShell += i
     WebshellFilesDict.append(ngramsDictionary(i.split(),n))
 
+for i in NormalData:
+    AllNormal += i
+    NormaFilesDict.append(ngramsDictionary(i.split(),n))
 
 
 print "\n\nCreating ngrams dictionaries for all files. Please Wait ...\n"
@@ -98,23 +107,30 @@ sleep(1)
 WebShellDict = ngramsDictionary(AllWebShell.split(),n)
 print "Webshell Dictionary Created!\n"
 sleep(1)
+NormalDict = ngramsDictionary(AllNormal.split(),n)
+print "Normal Dictionary Created!\n"
+sleep(1)
 
 print "\nCreating Data for Dictionaries ...\n"
 sleep(1)
-allDicts = [addUserDict,HydraFTPDict,HydraSSHDict,JavaMetrDict,MetrDict,WebShellDict]
+allDicts = [addUserDict,HydraFTPDict,HydraSSHDict,JavaMetrDict,MetrDict,WebShellDict,NormalDict]
 top30Adduser = []
 top30HydraFTP = []
 top30HydraSSH = []
 top30JavaMetr = []
 top30Metr = []
 top30Webshell = []
-top30Data = [top30Adduser,top30HydraFTP,top30HydraSSH,top30JavaMetr,top30Metr,top30Webshell]
+top30Normal = []
+
+top30Data = [top30Adduser,top30HydraFTP,top30HydraSSH,top30JavaMetr,top30Metr,top30Webshell,top30Normal]
+
+sys.stdout.write("Please enter the threshold frequency for consideration: ")
+sentinel = int(raw_input())
 for i in range(len(allDicts)):
     dict1 = allDicts[i]
     Ltot = len(dict1)
     c=0
     #sentinel = Ltot*0.3
-    sentinel = 450
     top30 = top30Data[i]
     print "Creating top 30% arrays of tuples for "+attackType[i]+" . . .\n"
     sleep(1)
@@ -143,7 +159,7 @@ for i in top30Data:
 string2 = ""
 for l in range(1,len(features)+1):
     string2+="@attribute feature" + str(l) + " numeric\n"
-configString = "@relation KDDTrain-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.supervised.instance.Resample-B0.0-S1-Z18.0-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.supervised.instance.SMOTE-C2-K5-P1000.0-S1-weka.filters.supervised.instance.SMOTE-C2-K5-P500.0-S1-weka.filters.supervised.instance.SMOTE-C2-K5-P125.0-S1-weka.filters.supervised.instance.SMOTE-C3-K5-P500.0-S1-weka.filters.supervised.instance.SMOTE-C3-K5-P150.0-S1-weka.filters.supervised.instance.SMOTE-C4-K5-P800.0-S1-weka.filters.unsupervised.instance.Randomize-S42\n"+string2+"@attribute class {adduser,hydraftp,hydrassh,javameter,meterpreter,webshell}\n\n@data\n"
+configString = "@relation KDDTrain-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.supervised.instance.Resample-B0.0-S1-Z18.0-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.supervised.instance.SMOTE-C2-K5-P1000.0-S1-weka.filters.supervised.instance.SMOTE-C2-K5-P500.0-S1-weka.filters.supervised.instance.SMOTE-C2-K5-P125.0-S1-weka.filters.supervised.instance.SMOTE-C3-K5-P500.0-S1-weka.filters.supervised.instance.SMOTE-C3-K5-P150.0-S1-weka.filters.supervised.instance.SMOTE-C4-K5-P800.0-S1-weka.filters.unsupervised.instance.Randomize-S42\n"+string2+"@attribute class {adduser,hydraftp,hydrassh,javameter,meterpreter,webshell,normal}\n\n@data\n"
 finalFile.write(configString)
 
 dataSet1 = ""
@@ -152,6 +168,8 @@ dataSet3 = ""
 dataSet4 = ""
 dataSet5 = ""
 dataSet6 = ""
+dataSet7 = ""
+
 for i in range(noOfAddUserFiles):
     for j in range(len(features)):
         try:
@@ -160,6 +178,7 @@ for i in range(noOfAddUserFiles):
             dataSet1 += str(0) + ", "
     dataSet1+="adduser\n"
     finalFile.write(dataSet1)
+
 for i in range(noOfHydraFTPFiles):
     for j in range(len(features)):
         try:
@@ -168,6 +187,7 @@ for i in range(noOfHydraFTPFiles):
             dataSet2 += str(0) + ", "
     dataSet2+="hydraftp\n"
     finalFile.write(dataSet2)
+
 for i in range(noOfHydraSSHFiles):
     for j in range(len(features)):
         try:
@@ -176,6 +196,7 @@ for i in range(noOfHydraSSHFiles):
             dataSet3 += str(0) + ", "
     dataSet3+="hydrassh\n"
     finalFile.write(dataSet3)
+
 for i in range(noOfJavaMetrFiles):
     for j in range(len(features)):
         try:
@@ -184,6 +205,7 @@ for i in range(noOfJavaMetrFiles):
             dataSet4 += str(0) + ", "
     dataSet4+="javameter\n"
     finalFile.write(dataSet4)
+
 for i in range(noOfMeterpreterFiles):
     for j in range(len(features)):
         try:
@@ -192,6 +214,7 @@ for i in range(noOfMeterpreterFiles):
             dataSet5 += str(0) + ", "
     dataSet5+="meterpreter\n"
     finalFile.write(dataSet5)
+
 for i in range(noOfWebShellFiles):
     for j in range(len(features)):
         try:
@@ -201,39 +224,25 @@ for i in range(noOfWebShellFiles):
     dataSet6+="webshell\n"
     finalFile.write(dataSet6)
 
+for i in range(noOfNormalFiles):
+    for j in range(len(features)):
+        try:
+            dataSet7+=str(NormaFilesDict[i][features[j]])+", "
+        except:
+            dataSet7 += str(0) + ", "
+    dataSet7+="normal\n"
+    finalFile.write(dataSet7)
+
 print "###################################################################################"
 print "DATASET Created in file "+ string1 +" !!!"
 print "Dataset Specifications :\n"
 print "------------------------------------------------------------"
 print "Dataset Name : Attack Recognition Dataset"
 print "No. of attributes :",len(features)
-print "No. of instances :",noOfAddUserFiles+noOfHydraFTPFiles+noOfHydraSSHFiles+noOfMeterpreterFiles+noOfWebShellFiles+noOfJavaMetrFiles
+print "No. of instances :",noOfAddUserFiles+noOfHydraFTPFiles+noOfHydraSSHFiles+noOfMeterpreterFiles+noOfWebShellFiles+noOfJavaMetrFiles+noOfNormalFiles
 classes = "Classes in Dataset : "
 for i in attackType:
     classes += " "+i+" "
 print classes
 print "-------------------------------------------------------------"
 print "################################################################################"
-
-
-'''
-    f1 = top30Adduser[i]
-    f2 = top30Adduser[i+1]
-    f3 = top30Adduser[i+2]
-    f4 = top30HydraFTP[i]
-    f5 = top30HydraFTP[i+1]
-    f6 = top30HydraFTP[i+2]
-    f7 = top30HydraSSH[i]
-    f8 = top30HydraSSH[i+1]
-    f9 = top30HydraSSH[i+2]
-    f10 = top30JavaMetr[i]
-    f11 = top30JavaMetr[i+1]
-    f12 = top30JavaMetr[i+2]
-    f13 = top30Metr[i]
-    f14 = top30Metr[i+1]
-    f15 = top30Metr[i+2]
-    f16 = top30Webshell[i]
-    f17 = top30Webshell[i+1]
-    f18 = top30Webshell[i+2]
-    features = [f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18]
-'''
