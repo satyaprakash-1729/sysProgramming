@@ -138,7 +138,12 @@ for i in range(len(allDicts)):
     for key, value in sortedDictArray:      #O(n) - 830000
         c+=1
         if(sentinel >= c):
-            top30.append(key)
+            try:
+                temp1 = addUserDict[key]+HydraFTPDict[key]+HydraSSHDict[key]+JavaMetrDict[key]+MetrDict[key]+WebShellDict[key]+NormalDict[key]
+                #temp1 = [fileDict[key] for fileDict in AddUserFilesDict]+[fileDict[key] for fileDict in HydraFTPFilesDict]+[fileDict[key] for fileDict in HydraSSHFilesDict]+[fileDict[key] for fileDict in JavaMetrFilesDict]+[fileDict[key] for fileDict in MeterpreterFilesDict]+[fileDict[key] for fileDict in WebshellFilesDict]+[fileDict[key] for fileDict in NormaFilesDict]
+                top30.append(key)
+            except:
+                pass
 
 ###################################
 filesInDir = os.listdir("./")
@@ -156,6 +161,14 @@ features = []
 for i in range(len(top30Data)):
     features+=top30Data[i]
     print str(len(top30Data[i])) + " --> " +attackType[i]
+
+string3 = "featureVector"+str(n)+"-Grams.txt"
+featureFile = open(string3,"w+")
+for i in features:
+    for j in i:
+        featureFile.write(str(j)+" ")
+    featureFile.write("\n")
+
 ###############################
 '''
 addUserTop = open("top30AddUser.txt","a+")

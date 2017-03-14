@@ -6,13 +6,13 @@ print "\n\nReading Input Files ...\n"
 #sleep(1)
 attackType = ["Add User Attack","Hydra SSH Attack","Hydra FTP Attack","Java Meterpreter Attack","Meterpreter Attack","Webshell Attack", "Normal"]
 
-fAddUser = open("totTrainAdduser.txt","r")
-fHydraFTP = open("totTrainHydraFTP.txt","r")
-fHydraSSH = open("totTrainHydraSSH.txt","r")
-fJavaMetr = open("totTrainJavaMetr.txt","r")
-fMetr = open("totTrainMeterpreter.txt","r")
-fWebShell = open("totTrainWebShell.txt","r")
-fNormal = open("totTrainDataNormal2.txt","r")
+fAddUser = open("totTestAdduser.txt","r")
+fHydraFTP = open("totTestHydraFTP.txt","r")
+fHydraSSH = open("totTestHydraSSH.txt","r")
+fJavaMetr = open("totTestJavaMetr.txt","r")
+fMetr = open("totTestMeterpreter.txt","r")
+fWebShell = open("totTestWebShell.txt","r")
+fNormal = open("totTestDataValidation.txt","r")
 
 sys.stdout.write("What Weight do u want to use for ngrams division? ")
 n = int(raw_input())
@@ -59,8 +59,8 @@ AllMeterpreter = ""
 AllWebShell = ""
 AllNormal = ""
 
-for i in AddUserData:       #O(n) : n = total no. of numbers
-    AllAddUser += i             #Here, ~830000
+for i in AddUserData:
+    AllAddUser += i
     AddUserFilesDict.append(ngramsDictionary(i.split(),n))
 
 for i in HydraSSHData:
@@ -89,7 +89,7 @@ for i in NormalData:
 
 
 print "\n\nCreating ngrams dictionaries for all files. Please Wait ...\n"
-addUserDict = ngramsDictionary(AllAddUser.split(),n)    #O(n) - 830000
+addUserDict = ngramsDictionary(AllAddUser.split(),n)
 print "Add User Dictionary Created!\n"
 #sleep(1)
 HydraFTPDict = ngramsDictionary(AllHydraFTP.split(),n)
@@ -134,19 +134,23 @@ for i in range(len(allDicts)):
     top30 = top30Data[i]
     print "Creating top 30% arrays of tuples for "+attackType[i]+" . . .\n"
     #sleep(1)
-    sortedDictArray = sorted(dict1.iteritems(), key=lambda (k,v): (v,k), reverse=True)      #O(nlogn) ~ 4900000
-    for key, value in sortedDictArray:      #O(n) - 830000
+    sortedDictArray = sorted(dict1.iteritems(), key=lambda (k,v): (v,k), reverse=True)
+    for key, value in sortedDictArray:
         c+=1
         if(sentinel >= c):
-            top30.append(key)
+            try:
+                temp1 = addUserDict[key]+HydraFTPDict[key]+HydraSSHDict[key]+JavaMetrDict[key]+MetrDict[key]+WebShellDict[key]+NormalDict[key]
+                top30.append(key)
+            except:
+                pass
 
 ###################################
 filesInDir = os.listdir("./")
 k=1
-string1 ="DATASET_"+str(k)+".arff"
+string1 ="TEST_DATASET_"+str(k)+".arff"
 while string1 in filesInDir:
     k+=1
-    string1 = "DATASET_"+str(k)+".arff"
+    string1 = "TEST_DATASET_"+str(k)+".arff"
 finalFile = open(string1,"a+")
 print "--------------------------------------------------------\nCreating DATASET . . ."
 #sleep(3)
@@ -156,43 +160,30 @@ features = []
 for i in range(len(top30Data)):
     features+=top30Data[i]
     print str(len(top30Data[i])) + " --> " +attackType[i]
-###############################
-'''
-addUserTop = open("top30AddUser.txt","a+")
-HydraFTPTop = open("top30HydraFTP.txt","a+")
-HydraSSHTop = open("top30HydraSSH.txt","a+")
-JavaMeterpreterTop = open("top30JavaMeterpreter.txt","a+")
-MeterpreterTop = open("top30Meterpreter.txt","a+")
-WebShellTop = open("top30WebShell.txt","a+")
-NormalTop = open("top30Normal.txt","a+")
 
-for i in top30Adduser:      
-    addUserTop.write(str(i)+"\n")
+############# 'unk' features #################
+string3 = "featureVector"+str(n)+"-Grams.txt"
+trainFeaturesFile = open(string3,"r")
+featureFileString = trainFeaturesFile.read()
+tempList = featureFileString.split("\n")
 
-for i in top30HydraFTP:
-    HydraFTPTop.write(str(i)+"\n")
+for i in tempList:
+    tup = tuple(i.split())
+    if tup not in features:
+        try:
+            temp1 = addUserDict[tup]+HydraFTPDict[tup]+HydraSSHDict[tup]+JavaMetrDict[tup]+MetrDict[tup]+WebShellDict[tup]+NormalDict[tup]
+            features.append(tup)
+        except:
+            pass
 
-for i in top30HydraSSH:
-    HydraSSHTop.write(str(i)+"\n")
+##############################
 
-for i in top30JavaMetr:
-    JavaMeterpreterTop.write(str(i)+"\n")
-
-for i in top30Metr:
-    MeterpreterTop.write(str(i)+"\n")
-
-for i in top30Webshell:
-    WebShellTop.write(str(i)+"\n")
-
-for i in top30Normal:
-    NormalTop.write(str(i)+"\n")
-'''
-###############################
 string2 = ""
 for l in range(1,len(features)+1):
     string2+="@attribute feature" + str(l) + " numeric\n"
 configString = "@relation KDDTrain-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.supervised.instance.Resample-B0.0-S1-Z18.0-weka.filters.unsupervised.instance.Randomize-S42-weka.filters.supervised.instance.SMOTE-C2-K5-P1000.0-S1-weka.filters.supervised.instance.SMOTE-C2-K5-P500.0-S1-weka.filters.supervised.instance.SMOTE-C2-K5-P125.0-S1-weka.filters.supervised.instance.SMOTE-C3-K5-P500.0-S1-weka.filters.supervised.instance.SMOTE-C3-K5-P150.0-S1-weka.filters.supervised.instance.SMOTE-C4-K5-P800.0-S1-weka.filters.unsupervised.instance.Randomize-S42\n"+string2+"@attribute class {adduser,hydraftp,hydrassh,javameter,meterpreter,webshell,normal}\n\n@data\n"
 finalFile.write(configString)
+
 dataSet1=""    
 dataSet2=""    
 dataSet3=""    
@@ -264,10 +255,10 @@ for i in range(noOfNormalFiles):
 finalFile.write(dataSet7)
 
 print "###################################################################################"
-print "DATASET Created in file "+ string1 +" !!!"
+print "TEST DATASET Created in file "+ string1 +" !!!"
 print "Dataset Specifications :\n"
 print "------------------------------------------------------------"
-print "Dataset Name : Attack Recognition Dataset"
+print "Dataset Name : Attack Recognition Dataset for testing. . ."
 print "No. of attributes :",len(features)
 print "No. of instances :",noOfAddUserFiles+noOfHydraFTPFiles+noOfHydraSSHFiles+noOfMeterpreterFiles+noOfWebShellFiles+noOfJavaMetrFiles+noOfNormalFiles
 classes = "Classes in Dataset : "
@@ -276,13 +267,3 @@ for i in attackType:
 print classes
 print "-------------------------------------------------------------"
 print "################################################################################"
-
-##################################
-#O(n) ~ 830000
-#O(n) ~ 830000
-#O(nlogn) ~ 4900000
-#O(n) ~ 830000
-#O(k*m) ~ 9200000
-#---------------
-#O(k*m) ~ 14000000 ~ 10^7
-##################################
