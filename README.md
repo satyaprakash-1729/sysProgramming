@@ -1,2 +1,0 @@
-# sysProgramming
-Mini Project
