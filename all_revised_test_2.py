@@ -114,18 +114,21 @@ print "Normal Dictionary Created!\n"
 print "\nCreating Data for Dictionaries ...\n"
 #sleep(1)
 allDicts = [addUserDict,HydraFTPDict,HydraSSHDict,JavaMetrDict,MetrDict,WebShellDict,NormalDict]
-top30Adduser = []
-top30HydraFTP = []
-top30HydraSSH = []
-top30JavaMetr = []
-top30Metr = []
-top30Webshell = []
-top30Normal = []
+# top30Adduser = []
+# top30HydraFTP = []
+# top30HydraSSH = []
+# top30JavaMetr = []
+# top30Metr = []
+# top30Webshell = []
+# top30Normal = []
 
-top30Data = [top30Adduser,top30HydraFTP,top30HydraSSH,top30JavaMetr,top30Metr,top30Webshell,top30Normal]
+# top30Data = [top30Adduser,top30HydraFTP,top30HydraSSH,top30JavaMetr,top30Metr,top30Webshell,top30Normal]
+
+#MAXENTRY = 90000
 
 #sys.stdout.write("Please enter the threshold frequency for consideration: ")
 #sentinel = int(raw_input())
+'''
 for i in range(len(allDicts)):
     dict1 = allDicts[i]
     Ltot = len(dict1)
@@ -134,7 +137,7 @@ for i in range(len(allDicts)):
     top30 = top30Data[i]
     print "Creating top 30% arrays of tuples for "+attackType[i]+" . . .\n"
     #sleep(1)
-    sortedDictArray = sorted(dict1.iteritems(), key=lambda (k,v): (v,k), reverse=True)
+    sortedDictArray = countSort(dict1,MAXENTRY)#sorted(dict1.iteritems(), key=lambda (k,v): (v,k), reverse=True)
     for key, value in sortedDictArray:
         c+=1
         if(sentinel >= c):
@@ -143,7 +146,7 @@ for i in range(len(allDicts)):
                 top30.append(key)
             except:
                 pass
-
+'''
 ###################################
 filesInDir = os.listdir("./")
 k=1
@@ -154,27 +157,61 @@ while string1 in filesInDir:
 finalFile = open(string1,"a+")
 print "--------------------------------------------------------\nCreating DATASET . . ."
 #sleep(3)
+##################################
+'''
+addUserTop = open("top30TestAddUser.txt","a+")
+HydraFTPTop = open("top30TestHydraFTP.txt","a+")
+HydraSSHTop = open("top30TestHydraSSH.txt","a+")
+JavaMeterpreterTop = open("top30TestJavaMeterpreter.txt","a+")
+MeterpreterTop = open("top30TestMeterpreter.txt","a+")
+WebShellTop = open("top30TestWebShell.txt","a+")
+NormalTop = open("top30TestNormal.txt","a+")
 
+for i in top30Adduser:      
+    addUserTop.write(str(i)+" -> "+str(addUserDict[i])+"\n")
+
+for i in top30HydraFTP:
+    HydraFTPTop.write(str(i)+" -> "+str(HydraFTPDict[i])+"\n")
+
+for i in top30HydraSSH:
+    HydraSSHTop.write(str(i)+" -> "+str(HydraSSHDict[i])+"\n")
+
+for i in top30JavaMetr:
+    JavaMeterpreterTop.write(str(i)+" -> "+str(JavaMetrDict[i])+"\n")
+
+for i in top30Metr:
+    MeterpreterTop.write(str(i)+" -> "+str(MetrDict[i])+"\n")
+
+for i in top30Webshell:
+    WebShellTop.write(str(i)+" -> "+str(WebShellDict[i])+"\n")
+
+for i in top30Normal:
+    NormalTop.write(str(i)+" -> "+str(NormalDict[i])+"\n")
+'''
+##################################
+
+'''
 features = []
-
 for i in range(len(top30Data)):
-    features+=top30Data[i]
+    for j in top30Data[i]:
+        if j not in features:
+            features.append(j)
     print str(len(top30Data[i])) + " --> " +attackType[i]
-
+'''
+features = []
 ############# 'unk' features #################
 string3 = "featureVector"+str(n)+"-Grams.txt"
-trainFeaturesFile = open(string3,"r")
+try:
+    trainFeaturesFile = open(string3,"r")
+except:
+    print "First Run the training for "+str(n)+"-grams"
+    sys.exit(1)
 featureFileString = trainFeaturesFile.read()
-tempList = featureFileString.split("\n")
+tempList = featureFileString.rstrip().split("\n")
 
 for i in tempList:
     tup = tuple(i.split())
-    if tup not in features:
-        try:
-            temp1 = addUserDict[tup]+HydraFTPDict[tup]+HydraSSHDict[tup]+JavaMetrDict[tup]+MetrDict[tup]+WebShellDict[tup]+NormalDict[tup]
-            features.append(tup)
-        except:
-            pass
+    features.append(tup)
 
 ##############################
 
@@ -191,67 +228,119 @@ dataSet4=""
 dataSet5=""    
 dataSet6=""
 dataSet7=""        
+
+threshold = 0
+ignored = 0
 for i in range(noOfAddUserFiles):       #O(k*m) k:no. of files m:no. of features
+    countNonZero = 0
+    tempStr = ""
     for j in range(len(features)):          #Here, 6918*1338 = 9200000
         try:
-            dataSet1+=str(AddUserFilesDict[i][features[j]])+", "
+            tempStr+=str(AddUserFilesDict[i][features[j]])+", "
+            countNonZero+=1
         except:
-            dataSet1 += str(0) + ", "
-    dataSet1+="adduser\n"
+            tempStr += str(0) + ", "
+    tempStr+="adduser\n"
+    if(countNonZero>threshold*len(features)):
+        dataSet1+=tempStr
+    else:
+        ignored+=1
 finalFile.write(dataSet1)
 
 for i in range(noOfHydraFTPFiles):
-    for j in range(len(features)):
+    countNonZero = 0
+    tempStr = ""
+    for j in range(len(features)):          #Here, 6918*1338 = 9200000
         try:
-            dataSet2+=str(HydraFTPFilesDict[i][features[j]])+", "
+            tempStr+=str(HydraFTPFilesDict[i][features[j]])+", "
+            countNonZero+=1
         except:
-            dataSet2 += str(0) + ", "
-    dataSet2+="hydraftp\n"
+            tempStr += str(0) + ", "
+    tempStr+="hydraftp\n"
+    if(countNonZero>threshold*len(features)):
+        dataSet2+=tempStr
+    else:
+        ignored+=1
 finalFile.write(dataSet2)
 
 for i in range(noOfHydraSSHFiles):
-    for j in range(len(features)):
+    countNonZero = 0
+    tempStr = ""
+    for j in range(len(features)):          #Here, 6918*1338 = 9200000
         try:
-            dataSet3+=str(HydraSSHFilesDict[i][features[j]])+", "
+            tempStr+=str(HydraSSHFilesDict[i][features[j]])+", "
+            countNonZero+=1
         except:
-            dataSet3 += str(0) + ", "
-    dataSet3+="hydrassh\n"
+            tempStr += str(0) + ", "
+    tempStr+="hydrassh\n"
+    if(countNonZero>threshold*len(features)):
+        dataSet3+=tempStr
+    else:
+        ignored+=1
 finalFile.write(dataSet3)
 
 for i in range(noOfJavaMetrFiles):
-    for j in range(len(features)):
+    countNonZero = 0
+    tempStr = ""
+    for j in range(len(features)):          #Here, 6918*1338 = 9200000
         try:
-            dataSet4+=str(JavaMetrFilesDict[i][features[j]])+", "
+            tempStr+=str(JavaMetrFilesDict[i][features[j]])+", "
+            countNonZero+=1
         except:
-            dataSet4 += str(0) + ", "
-    dataSet4+="javameter\n"
+            tempStr += str(0) + ", "
+    tempStr+="javameter\n"
+    if(countNonZero>threshold*len(features)):
+        dataSet4+=tempStr
+    else:
+        ignored+=1
 finalFile.write(dataSet4)
 
 for i in range(noOfMeterpreterFiles):
-    for j in range(len(features)):
+    countNonZero = 0
+    tempStr = ""
+    for j in range(len(features)):          #Here, 6918*1338 = 9200000
         try:
-            dataSet5+=str(MeterpreterFilesDict[i][features[j]])+", "
+            tempStr+=str(MeterpreterFilesDict[i][features[j]])+", "
+            countNonZero+=1
         except:
-            dataSet5 += str(0) + ", "
-    dataSet5+="meterpreter\n"
+            tempStr += str(0) + ", "
+    tempStr+="meterpreter\n"
+    if(countNonZero>threshold*len(features)):
+        dataSet5+=tempStr
+    else:
+        ignored+=1
 finalFile.write(dataSet5)
 
 for i in range(noOfWebShellFiles):
-    for j in range(len(features)):
+    countNonZero = 0
+    tempStr = ""
+    for j in range(len(features)):          #Here, 6918*1338 = 9200000
         try:
-            dataSet6+=str(WebshellFilesDict[i][features[j]])+", "
+            tempStr+=str(WebshellFilesDict[i][features[j]])+", "
+            countNonZero+=1
         except:
-            dataSet6 += str(0) + ", "
-    dataSet6+="webshell\n"
+            tempStr += str(0) + ", "
+    tempStr+="webshell\n"
+    if(countNonZero>threshold*len(features)):
+        dataSet6+=tempStr
+    else:
+        ignored+=1
 finalFile.write(dataSet6)
 
 for i in range(noOfNormalFiles):
-    for j in range(len(features)):
+    countNonZero = 0
+    tempStr = ""
+    for j in range(len(features)):          #Here, 6918*1338 = 9200000
         try:
-            dataSet7+=str(NormaFilesDict[i][features[j]])+", "
+            tempStr+=str(NormaFilesDict[i][features[j]])+", "
+            countNonZero+=1
         except:
-            dataSet7 += str(0) + ", "
-    dataSet7+="normal\n"
+            tempStr += str(0) + ", "
+    tempStr+="normal\n"
+    if(countNonZero>threshold*len(features)):
+        dataSet7+=tempStr
+    else:
+        ignored+=1
 finalFile.write(dataSet7)
 
 print "###################################################################################"
@@ -260,10 +349,11 @@ print "Dataset Specifications :\n"
 print "------------------------------------------------------------"
 print "Dataset Name : Attack Recognition Dataset for testing. . ."
 print "No. of attributes :",len(features)
-print "No. of instances :",noOfAddUserFiles+noOfHydraFTPFiles+noOfHydraSSHFiles+noOfMeterpreterFiles+noOfWebShellFiles+noOfJavaMetrFiles+noOfNormalFiles
+print "No. of ignored instances : ",ignored
+print "No. of instances :",noOfAddUserFiles+noOfHydraFTPFiles+noOfHydraSSHFiles+noOfMeterpreterFiles+noOfWebShellFiles+noOfJavaMetrFiles+noOfNormalFiles - ignored
 classes = "Classes in Dataset : "
 for i in attackType:
-    classes += " "+i+" "
+    classes += "| "+i+" |"
 print classes
 print "-------------------------------------------------------------"
 print "################################################################################"

@@ -154,7 +154,10 @@ print "--------------------------------------------------------\nCreating DATASE
 features = []
 
 for i in range(len(top30Data)):
-    features+=top30Data[i]
+    for j in top30Data[i]:
+        #print features
+        if j not in features:
+            features.append(j)
     print str(len(top30Data[i])) + " --> " +attackType[i]
 ###############################
 '''
